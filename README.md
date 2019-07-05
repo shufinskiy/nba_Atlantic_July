@@ -1,10 +1,3 @@
----
-output: github_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 ## Проекты, созданные для Телеграм-канала NBAatlantic в июне-июле
 
