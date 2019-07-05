@@ -59,7 +59,7 @@ dt1 <- dt1[, Count := factor(Count, levels = c("Multi", "Single", "None"))]
 ```
 
 |Season|	Player|	Awards|	Count|
-|---|---|---|
+|---|---|---|---|
 |2017-18|	Ben Simmons|	All_Star|	Single|
 |2016-17|	Malcolm Brogdon|	All_Star|	None|
 |2015-16|	Karl-Anthony Towns|	All_Star|	Multi|
