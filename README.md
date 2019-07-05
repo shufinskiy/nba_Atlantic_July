@@ -9,7 +9,6 @@ library(data.table)
 library(tidyverse)
 library(ggthemes)
 dt <- fread("F:/Excel/NBAatlantic/ROY.csv")
-knitr::kable(dt[1:10])
 ```
 
 Точное количество наград я заменяю категориальной переменной к тремя значениями: None, Single, Multi. Замену првоодится с помощью функции ```replase_func```.
@@ -18,6 +17,18 @@ knitr::kable(dt[1:10])
 dt1 <- copy(dt)
 dt1 <- dt1[, Player := str_remove(Player, "\\\\[:alnum:]{1,}")]
 ```
+|Season	|Player|	All_Star|	All_NBA|	MVP|
+|---|---|---|---|---|
+|2017-18	|Ben Simmons01|	1|	0|	0|
+|2016-17	|Malcolm Brogdon01|	0|	0|	0|
+|2015-16	|Karl-Anthony Towns01|	2|	1|	0|
+|2014-15	|Andrew Wiggins01|	0|	0|	0|
+|2013-14	|Michael Carter-Williams01|	0|	0|	0|
+|2012-13	|Damian Lillard01|	4|	4|	0|
+|2011-12	|Kyrie Irving01|	6|	2|	0|
+|2010-11	|Blake Griffin01|	6|	5|	0|
+|2009-10	|Tyreke Evans01|	0|	0|	0|
+|2008-09	|Derrick Rose01|	3|	1|	1|
 
 ```{r}
 ## Функция для замены числовых значений категориальными
@@ -28,7 +39,6 @@ replase_func <- function(x){
 }
 cols <- colnames(dt1[, 3:5])
 dt1 <- dt1[, (cols) := lapply(.SD, replase_func), .SDcols = cols]
-knitr::kable(dt1[1:5])
 ```
 
 Изменение вида данных с помощью функции ```melt```
@@ -87,7 +97,7 @@ table[is.na(table)] <- 0
 test <- dcast(table, Team ~ Player, value.var = "Player")
 test <- test[, .(Team, Player = do.call(paste, c(.SD, sep = ", "))), .SDcols = 2:45][
   , Player := str_remove_all(Player, "(NA, )|(, NA)")]
-knitr::kable(test[1:5])
+
 ```
 
 Суммирование стоимости контрактов и показателя PIPM по командам и объединение с таблицей test.
@@ -96,7 +106,6 @@ table1 <- table[, .(Money = sum(Money),
                     PIPM = sum(PIPM)), by = Team]
 table1 <- merge(table1, test, by = "Team")
 table1 <- table1[order(Money, decreasing = T)]
-knitr::kable(table1[1:5])
 ```
 
 ```{r}
