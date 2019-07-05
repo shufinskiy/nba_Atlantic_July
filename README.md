@@ -46,7 +46,7 @@ dt1 <- dt1[, (cols) := lapply(.SD, replase_func), .SDcols = cols]
 |---|---|---|---|---|
 |2017-18|	Ben Simmons|	Single|	None|	None|
 |2016-17|	Malcolm Brogdon|	None|	None|	None|
-|2015-16|	Karl-Anthony Towns|	Multi||	Single|	None|
+|2015-16|	Karl-Anthony Towns|	Multi|	Single|	None|
 |2014-15|	Andrew Wiggins|	None|	None|	None|
 |2013-14|	Michael Carter-Williams|	None|	None|	None|
 
