@@ -4,16 +4,16 @@
 ### Анализ количества наград у бывших Rookie of the Year
 Анализ "успешности" карьеры бывших новичков года в плане наград в дальнейшем. Выбраны три их вида: поездка на All-Star, попадание в All-NBA команды и титул MVP.
 
-```{r, warning=FALSE, message=FALSE}
+```r
 library(data.table)
 library(tidyverse)
 library(ggthemes)
-dt <- fread("F:/Excel/NBAatlantic/ROY.csv")
+dt <- fread("./data/ROY.csv")
 ```
 
 Точное количество наград я заменяю категориальной переменной к тремя значениями: None, Single, Multi. Замену првоодится с помощью функции ```replase_func```.
 
-```{r, results='hide', echo=FALSE}
+```r
 dt1 <- copy(dt)
 dt1 <- dt1[, Player := str_remove(Player, "\\\\[:alnum:]{1,}")]
 ```
@@ -31,7 +31,7 @@ dt1 <- dt1[, Player := str_remove(Player, "\\\\[:alnum:]{1,}")]
 |2009-10	|Tyreke Evans01|	0|	0|	0|
 |2008-09	|Derrick Rose01|	3|	1|	1|
 
-```{r}
+```r
 ## Функция для замены числовых значений категориальными
 replase_func <- function(x){
   if_else(x == 0, "None",
@@ -51,10 +51,8 @@ dt1 <- dt1[, (cols) := lapply(.SD, replase_func), .SDcols = cols]
 |2013-14|	Michael Carter-Williams|	None|	None|	None|
 
 Изменение вида данных с помощью функции ```melt```
-```{r}
+```r
 dt1 <- melt(dt1, measure.vars = cols, variable.name = "Awards", value.name = "Count")
-knitr::kable(dt1[1:5])
-```{r, results='hide', echo=FALSE}
 dt1 <- dt1[, Count := factor(Count, levels = c("Multi", "Single", "None"))]
 ```
 
@@ -68,7 +66,7 @@ dt1 <- dt1[, Count := factor(Count, levels = c("Multi", "Single", "None"))]
 
 Построение графика
 
-```{r}
+```r
 ggplot(dt1, aes(x = Season, y = Awards, fill = Count)) +
   geom_tile(color = "white", size = 0.1) +
   scale_fill_viridis_d(option = "viridis") +
@@ -88,7 +86,7 @@ ggplot(dt1, aes(x = Season, y = Awards, fill = Count)) +
 ![](ROY.jpeg)
 ### Анализ стоимости и продуктивности игроков, подписанных в первый день рынка свободных агентов.
 
-```{r, message=FALSE}
+```r
 library(data.table)
 library(tidyverse)
 library(ggthemes)
@@ -100,7 +98,7 @@ pipm <- fread("C:/Users/1170201i3/Desktop/2018-19 PIPM & Multi-Year PIPM - 2018-
 color <- fread("F:/NBA_20191705/Excel/Team_color.csv")
 ```
 
-```{r, echo=FALSE}
+```r
 ## Удаление лишних столбцов из таблицы pipm
 pipm <- pipm[, .(Player, PIPM)]
 ## Объединение таблиц и изменение значений NA на 0
@@ -110,7 +108,7 @@ table[is.na(table)] <- 0
 
 Сворачивание таблицы из "long" в "wild", объединение столбцов и удаление элементов NA.
 
-```{r}
+```r
 test <- dcast(table, Team ~ Player, value.var = "Player")
 test <- test[, .(Team, Player = do.call(paste, c(.SD, sep = ", "))), .SDcols = 2:45][
   , Player := str_remove_all(Player, "(NA, )|(, NA)")]
@@ -125,7 +123,7 @@ test <- test[, .(Team, Player = do.call(paste, c(.SD, sep = ", "))), .SDcols = 2
 |DAL|	JJ Barea, Kristaps Porzingis, Maxi Kleber|
 
 Суммирование стоимости контрактов и показателя PIPM по командам и объединение с таблицей test.
-```{r}
+```r
 table1 <- table[, .(Money = sum(Money),
                     PIPM = sum(PIPM)), by = Team]
 table1 <- merge(table1, test, by = "Team")
@@ -140,7 +138,7 @@ table1 <- table1[order(Money, decreasing = T)]
 |MIL|	270.6|	2.37|	Brook Lopez, George Hill, Khris Middleton|
 |DAL|	227.4|	-0.63|	JJ Barea, Kristaps Porzingis, Maxi Kleber|
 
-```{r}
+```r
 ## Создание символьного вектора с названием команд с порядке убывания их затрат
 factor <- table1[order(Money, decreasing = T)][,Team]
 ## Объединение таблицы с данными и таблицы с цветом, сортировка по убыванию
@@ -153,7 +151,7 @@ table2 <- table[, Team := factor(Team, levels = factor)]
 ```
 Создание графика и таблицы и их объединение с помощью функции ```grid.arrange```
 
-```{r, eval =FALSE}
+```r
 ## Создание графика
 gg <- ggplot(table2, aes(x = Team, y = Money)) +
   geom_bar(stat = "identity", aes(fill = Player), color = "black") +
