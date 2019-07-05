@@ -17,6 +17,7 @@ dt <- fread("F:/Excel/NBAatlantic/ROY.csv")
 dt1 <- copy(dt)
 dt1 <- dt1[, Player := str_remove(Player, "\\\\[:alnum:]{1,}")]
 ```
+
 |Season	|Player|	All_Star|	All_NBA|	MVP|
 |---|---|---|---|---|
 |2017-18	|Ben Simmons01|	1|	0|	0|
@@ -41,6 +42,14 @@ cols <- colnames(dt1[, 3:5])
 dt1 <- dt1[, (cols) := lapply(.SD, replase_func), .SDcols = cols]
 ```
 
+|Season|	Player|	All_Star|	All_NBA|	MVP|
+|---|---|---|---|---|
+|2017-18|	Ben Simmons	Single|	None|	None|
+|2016-17|	Malcolm Brogdon|	None|	None|	None|
+|2015-16|	Karl-Anthony Towns|	Multi||	Single|	None|
+|2014-15|	Andrew Wiggins|	None|	None|	None|
+|2013-14|	Michael Carter-Williams|	None|	None|	None|
+
 Изменение вида данных с помощью функции ```melt```
 ```{r}
 dt1 <- melt(dt1, measure.vars = cols, variable.name = "Awards", value.name = "Count")
@@ -48,6 +57,14 @@ knitr::kable(dt1[1:5])
 ```{r, results='hide', echo=FALSE}
 dt1 <- dt1[, Count := factor(Count, levels = c("Multi", "Single", "None"))]
 ```
+
+|Season|	Player|	Awards|	Count|
+|---|---|---|---|---|
+|2017-18|	Ben Simmons|	All_Star|	Single|
+|2016-17|	Malcolm Brogdon|	All_Star|	None|
+|2015-16|	Karl-Anthony Towns|	All_Star|	Multi|
+|2014-15|	Andrew Wiggins|	All_Star|	None|
+|2013-14|	Michael Carter-Williams|	All_Star|	None|
 
 Построение графика
 
@@ -97,8 +114,15 @@ table[is.na(table)] <- 0
 test <- dcast(table, Team ~ Player, value.var = "Player")
 test <- test[, .(Team, Player = do.call(paste, c(.SD, sep = ", "))), .SDcols = 2:45][
   , Player := str_remove_all(Player, "(NA, )|(, NA)")]
-
 ```
+
+|Team|	Player|
+|---|---|
+|BKN|	DeAndre Jordan, Garrett Temple, Kevin Durant, Kyrie Irving|
+|BOS|	Enes Kanter, Kemba Walker|
+|CHA|	NA|
+|CHI|	NA|
+|DAL|	JJ Barea, Kristaps Porzingis, Maxi Kleber|
 
 Суммирование стоимости контрактов и показателя PIPM по командам и объединение с таблицей test.
 ```{r}
@@ -107,6 +131,14 @@ table1 <- table[, .(Money = sum(Money),
 table1 <- merge(table1, test, by = "Team")
 table1 <- table1[order(Money, decreasing = T)]
 ```
+
+|Team|	Money|	PIPM|	Player|
+|---|---|---|---|
+|BKN|	356.0|	7.95|	DeAndre Jordan, Garrett Temple, Kevin Durant, Kyrie Irving|
+|GSW|	322.0|	0.44|	D'Angelo Russell, Kevon Looney, Klay Thompson|
+|PHI|	300.8|	1.02|	Al Horford, Kyle O'Quinn|
+|MIL|	270.6|	2.37|	Brook Lopez, George Hill, Khris Middleton|
+|DAL|	227.4|	-0.63|	JJ Barea, Kristaps Porzingis, Maxi Kleber|
 
 ```{r}
 ## Создание символьного вектора с названием команд с порядке убывания их затрат
