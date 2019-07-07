@@ -156,5 +156,181 @@ output <- grid.arrange(gg, gtable, nrow = 1,
 Конечный график
 ![](C:/Users/1170201i3/Desktop/R/FA.jpeg)
 
+### Анализ обмена Нового Орлеана и Атланты.
+### Сравение показателей WS и VORP для пиков, участвовавших в обмене за первые 7 лет карьеры в НБА.
+
+Получаем суммы показателей WS и VORP в первые 7 лет после драфта для игроков, задрафтованных в период с 1976 по 2011 год с помощью созданной функции ```seven_first_years```. Код функции находится в файле `seven_first_years.R`
+
+```{r}
+library(tidyverse)
+library(data.table)
+library(ggthemes)
+library(gridExtra)
+```
+
+```{r, eval=FALSE}
+source("seven_first_years.R")
+```
+
+Создание сводной таблицы с помощью функции `lapply()`
+
+```{r, echo=FALSE, results='hide'}
+
+seven_first_years <- function(n){
+  
+  draft50 <- fread("F:/NBA_20191705/Excel/Draft_analyze/List_drafted_50.csv", index = "Year")
+  draftall <- fread("F:/NBA_20191705/Excel/Draft_analyze/List_drafted_corr1.csv", index = "Year")
+  undraft <- fread("F:/NBA_20191705/Excel/Draft_analyze/List_undrafted_corr.csv", index = "Year")
+  ws <- fread("F:/NBA_20191705/Excel/Draft_analyze/List_ws_vorp.csv", index = "Year")
+  
+  draft <- draft50[.(n), on = "Year"]
+  
+  #First year of career
+  season1 <- ws[.(n), on = "Year"][,":=" (Year = NULL, Tm = NULL)]
+  draft1 <- copy(draft)
+  draft1 <- draft1[,":=" (Year = NULL, Tm = NULL)]
+  united1 <- merge(draft1, season1, all.x = TRUE)
+  united1$Year <- n
+  
+  #Second year of career
+  season2 <- ws[.(n+1), on = "Year"][,":=" (Year = NULL, Tm = NULL)]
+  draft2 <- copy(draft)
+  draft2 <- draft2[,":=" (Year = NULL, Tm = NULL)]
+  united2 <- merge(draft2, season2, all.x = TRUE)
+  united2$Year <- n+1
+  
+  #Third year of career
+  season3 <- ws[.(n+2), on = "Year"][,":=" (Year = NULL, Tm = NULL)]
+  draft3 <- copy(draft)
+  draft3 <- draft3[,":=" (Year = NULL, Tm = NULL)]
+  united3 <- merge(draft3, season3, all.x = TRUE)
+  united3$Year <- n+2
+  
+  #Fourth year of career
+  season4 <- ws[.(n+3), on = "Year"][,":=" (Year = NULL, Tm = NULL)]
+  draft4 <- copy(draft)
+  draft4 <- draft4[,":=" (Year = NULL, Tm = NULL)]
+  united4 <- merge(draft4, season4, all.x = TRUE)
+  united4$Year <- n+3
+  
+  #Fifth year of career
+  season5 <- ws[.(n+4), on = "Year"][,":=" (Year = NULL, Tm = NULL)]
+  draft5 <- copy(draft)
+  draft5 <- draft5[,":=" (Year = NULL, Tm = NULL)]
+  united5 <- merge(draft5, season5, all.x = TRUE)
+  united5$Year <- n+4
+  
+  #Sixth year of career
+  season6 <- ws[.(n+5), on = "Year"][,":=" (Year = NULL, Tm = NULL)]
+  draft6 <- copy(draft)
+  draft6 <- draft6[,":=" (Year = NULL, Tm = NULL)]
+  united6 <- merge(draft6, season6, all.x = TRUE)
+  united6$Year <- n+5
+  
+  #Seventh year of career
+  season7 <- ws[.(n+6), on = "Year"][,":=" (Year = NULL, Tm = NULL)]
+  draft7 <- copy(draft)
+  draft7 <- draft7[,":=" (Year = NULL, Tm = NULL)]
+  united7 <- merge(draft7, season7, all.x = TRUE)
+  united7$Year <- n+6
+  
+  #Merging tables
+  l <- list(united1, united2, united3, united4, united5, united6, united7)
+  general <- rbindlist(l)
+  general <- na.omit(general)
+  
+  #Amount of WS & VORP in seven seasons by top-50 draft picks
+  general <- general[, .(WS =sum(WS), VORP = sum(VORP)), by = Player]
+  
+  #Return of round and pick numbers
+  general <- merge(draft, general, all.x = TRUE)
+  
+  #Function to replace NA values on zeros
+  f_dowle2 <- function(DT) {
+    for (i in names(DT))
+      DT[is.na(get(i)), (i):=0]
+    return(DT)
+  }
+  general <- f_dowle2(general)
+  general <- general[, ":=" (VORP = round(VORP, digits =1),
+                             WS = round(WS, digits =1))]
+  return(general)
+}
+
+```
+
+```{r}
+table <- rbindlist(lapply(seq(1976, 2011), seven_first_years))
+```
+
+```{r}
+print(head(table, 5))
+```
+
+Подсчёт суммы показателей для 8, 17 и 35 пиков вместе. Сравнение их с показателями 4 пика.
+
+```{r}
+dt <- table[Pk == 4 | Pk == 8 | Pk == 17 | Pk == 35][
+  , Pk := as.character(Pk)][Pk == "8" | Pk == "17" | Pk == "35", Pk := "sum(8, 17, 35)"][
+    , .(WS_ch = sum(WS),
+               VORP_ch = sum(VORP)), by =.(Pk, Year)]
+
+dt1 <- dcast(dt, Year ~ Pk, value.var = c("WS_ch", "VORP_ch"))
+dt2 <- dt1[, .(Log = WS_ch_4 >`WS_ch_sum(8, 17, 35)`)][, .(.N), by = Log]
+dt3 <- dt1[, .(Log = VORP_ch_4 >`VORP_ch_sum(8, 17, 35)`)][, .(.N), by = Log]
+
+print(head(dt, 6))
+print(dt2)
+
+```
+
+Подсчёт средних показателей для каждого пика
+
+```{r}
+table_mean <- table[Pk == 4 | Pk == 8 | Pk == 17 | Pk == 35][
+  ,.(WS_mean = round(mean(WS), digits = 2),
+     VORP_mean = round(mean(VORP), digits = 2)) , by = Pk][order(Pk)]
+```
+
+Создание графиков 4 пиков с показателями WS и VORP для каждого выбора.
+
+```{r, eval=FALSE}
+cclist <- lapply(c(4, 8, 17, 35), function(pick){
+  mean <- table[Pk == pick][,.(WS_mean = round(mean(WS), digits = 2),
+                              VORP_mean = round(mean(VORP), digits = 2)), by = Pk][order(Pk)]
+  ggplot(table[Pk == pick], aes(x = Year, y = WS)) +
+    geom_point(aes(color = "WS")) +
+    geom_segment(aes(xend = Year), yend=0, linetype = "dotted") +
+    expand_limits(y=0) +
+    geom_point(aes(x = Year, y = VORP,  color = "VORP")) +
+    scale_colour_manual(name = 'Value', 
+                        guide = 'legend',
+                        values = c('WS' = 'green',
+                                   'VORP' = 'red'), 
+                        labels = c('VORP',
+                                   'WS')) +
+    geom_text(aes(x = Year, y = WS, label = WS), nudge_y = 2, size  = 2) +
+    geom_text(aes(x = Year, y = VORP, label = VORP), nudge_y = -2,
+              size  = 2, color = "red") +
+    theme_tufte() +
+    scale_x_continuous(breaks = seq(1976, 2011)) +
+    theme(axis.title.y = element_blank(),
+          axis.text.x = element_text(angle = 90),
+          plot.title = element_text(hjust = 0.5)) +
+    labs(title = paste0("The values of WS and VORP for ", pick, "th pick of the NBA draft\nin first 7 years of his career."),
+         subtitle = paste0("Average WS for the ", pick, "th pick - ", mean[[2]],
+                           "\nAverage VORP for the ", pick, "th pick - ", mean[[3]]),
+         caption = "Sourse: basketball-reference\n Telegram: @NBAatlantic, twitter: @vshufinskiy")
+})
+cclist[["ncol"]] <- 1
+  
+output <- do.call(grid.arrange, cclist)
+```
+
+Результат
+
+![](C:\Users\Мама\Documents\draft_plot.jpeg)
+
+
 
 Мои работы можно посмотреть в Телеграм-канале [NBAatlantic](https://t.me/nbaatlantic)
