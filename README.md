@@ -206,6 +206,7 @@ dt3 <- dt1[, .(Log = VORP_ch_4 >`VORP_ch_sum(8, 17, 35)`)][, .(.N), by = Log]
 ```
 
 table
+
 |Player| Year| Rd| Pk|  Tm|   WS| VORP|
 |---|---|---|---|---|---|---|
 |Adrian Dantley| 1976|  1|  6| BUF| 68.7| 25.2|
@@ -215,6 +216,7 @@ table
 |Barnes Hauptfuhrer| 1976|  3| 44| HOU|  0.0|  0.0|
 
 dt
+
 |Pk| Year| WS_ch| VORP_ch|
 |---|---|---|---|
 |sum(8, 17, 35)| 1976|  79.1|    28.4|
@@ -225,6 +227,7 @@ dt
 |4| 1978|  31.8|    23.6|
 
 dt2
+
 |Log|  N|
 |---|---|
 |FALSE| 22|
