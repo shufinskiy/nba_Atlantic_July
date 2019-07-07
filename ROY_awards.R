@@ -3,7 +3,7 @@ library(tidyverse)
 library(ggthemes)
 
 ## Загрузка данных
-dt <- fread("F:./data/ROY.csv")
+dt <- fread("./data/ROY.csv")
 
 dt1 <- copy(dt)
 
